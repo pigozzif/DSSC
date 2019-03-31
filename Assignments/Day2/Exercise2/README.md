@@ -12,21 +12,21 @@ I parallelized the provided loop with a work-sharing construct of the form `#pra
 6:                                                                                                                                                    
 7:                                                                                                                                                   
 8:                                                                                                                                                   
-9:```
+9:
 
-```schedule(static):
+schedule(static):
 0:*************************                                                                                                                           
 1:                         *************************                                                                                                  
 2:                                                  *************************                                                                         
 3:                                                                           *************************                                                
 4:                                                                                                    *************************                       
-5:                                                                                                                             ****
+5:                                                                                                                             **
 6:                                                                                                                                                    
 7:                                                                                                                                                    
 8:                                                                                                                                                    
-9:                     ```
+9:                     
 
-```schedule(static, 1):
+schedule(static, 1):
 0:*         *         *         *         *         *         *         *         *         *         *         *         *        
 1: *         *         *         *         *         *         *         *         *         *         *         *         *         
 2:  *         *         *         *         *         *         *         *         *         *         *         *         *         
@@ -36,9 +36,9 @@ I parallelized the provided loop with a work-sharing construct of the form `#pra
 6:	*         *         *         *         *         *         *         *         *         *         *         *         *         
 7:	 *         *         *         *         *         *         *         *         *         *         *         *         *         
 8:        *         *         *         *         *         *         *         *         *         *         *         *         
-9:         *         *         *         *         *         *         *         *         *         *         *         *     ```
+9:         *         *         *         *         *         *         *         *         *         *         *         *  
 
-```schedule(static, 10):
+schedule(static, 10):
 0:**********                                                                                          **********                                      
 1:          **********                                                                                          **********                            
 2:                    **********                                                                                          ****
@@ -48,9 +48,9 @@ I parallelized the provided loop with a work-sharing construct of the form `#pra
 6:                                                            **********                                                                              
 7:                                                                      **********                                                                    
 8:                                                                                **********                                                          
-9:                                                                                          **********                                               ```
+9:                                                                                          **********                                           
 
-```schedule(dynamic):
+schedule(dynamic):
 0:*          *  * *  *           *     *                 *  *  *       *          *         *   *    *     *                             
 1: *                     *   * *  * *    *   *       *    *	  *     * *           *   *            *          *         * *      
 2:    *                                             *	   *                  * *                               *	*          *    *             
@@ -60,9 +60,9 @@ I parallelized the provided loop with a work-sharing construct of the form `#pra
 6:         *                                       *         *           *	 *  *    *     *          *	 *    *         * *                   
 7:	 *                              *                     *            * *             *                       *                          
 8:     *                                                                       *             *     *                   *			*     
-9:  *                   *  *    *           *   *	*                          *              *          * *          *           *  ```
+9:  *                   *  *    *           *   *	*                          *              *          * *          *           *  
 
-```schedule(dynamic, 1):
+schedule(dynamic, 1):
 0: *        * * * * * * * * * * * * * * * * * * * * *  ** ** ** ** * * * * * * * * * ** * * ** * * * * * * * * * * * * * * *** * 
 1:*                                                                                                                                                   
 2:	 *                                                                                                                                            
@@ -72,9 +72,9 @@ I parallelized the provided loop with a work-sharing construct of the form `#pra
 6:        *                                                                                                                                           
 7:	*                                                                                                                                
 8:  *                                                                                                                                                 
-9:   *       * * * * * * * * * * * * * * * * * * * * **  *  *  *  * * * * * * * * * *  * * *  * * * * * * * * * * * * * * *   * ```
+9:   *       * * * * * * * * * * * * * * * * * * * * **  *  *  *  * * * * * * * * * *  * * *  * * * * * * * * * * * * * * *   * 
 
-```schedule(dynamic, 10):
+schedule(dynamic, 10):
 0:                    **********                                                                      **********          *******
 1:**********                                                                                                                                          
 2:                                                                      **********                              **********         
@@ -84,4 +84,8 @@ I parallelized the provided loop with a work-sharing construct of the form `#pra
 6:                              **********                                                                                                            
 7:                                                                                **********                                                          
 8:          **********                                                                                                                                
-9:                                        **********                                                                             ```
+9:                                        **********                                                                             
+```
+
+
+
