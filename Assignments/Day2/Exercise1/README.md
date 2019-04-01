@@ -2,7 +2,7 @@
 I wrote a program that computes an approximation of the mathematical constant $/pi$, following the formula proposed in the assignment, where such approximation improves asymptotically. The code can be easily compiled with `make`, while the experiments can be easily carried out by submitting `script.sh` on a queue, provided you include the source code in the appropriate folder.
 
 Subsequently, I sat out to understand how to parallelize the code using OpenMP. Of course, the task which can be carried out concurrently are the computations of the different areas which are then summed up. So I simply enclosed the main loop in a work-sharing construct with the the `#pragma omp for` directive. Notice I did not use `parallel` at this point because that statement was enclosed in an outer parallel region defined by `#pragma omp parallel`. At this step, an issue arose, since the update of the `global_result` variable gives rise to a race condition. In fact, the same memory region is read concurrently by different threads, and at least one of them, possibly more, may update it at the same time. To protect against a race condition we have been provided with three tools: `critical`, `atomic` and `reduction`. As asked in the assignment, I tested the execution time (with some easy calls to `omp_get_wtime()`) and plotted the results below.
-```
-***WORK IN PROGRESS***
-```
+
+!(https://github.com/pigozzif/DSSC/blob/master/Assignments/Day2/Exercise1/scalability_plot.png)
+
 As we can see, `critical` performs worse than everybody else. This is not suprising, since that directive asks the operating system to intervene in the synchronization of the threads, but of course going to the os is a rather expensive operation.
