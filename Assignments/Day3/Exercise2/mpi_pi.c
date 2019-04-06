@@ -5,6 +5,7 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
+// this function returns the seconds elapsed from the start of the Unix epoch
 double seconds() {
     struct timeval tmp;
     double sec;
@@ -14,10 +15,9 @@ double seconds() {
 }
 
 
-
 int main(int argc, char* argv[]) {
-    double N = 1000000000;
-    double h = 1 / N;
+    double N = 1000000000;  // large number of rectangles
+    double h = 1 / N;  // step
     int rank = 0;
     int npes = 1;
     double start_time, end_time;
@@ -25,24 +25,29 @@ int main(int argc, char* argv[]) {
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &npes);
-    if (rank == 0) start_time = seconds();
+    
+    if (rank == 0) start_time = seconds();  // time has to be taken on one process, for us 0
 
-    double local_result[1] = {0.0};
-    double global_result[1] = {0.0};
-    int start = rank * (N / npes);
-    int end = start + (N / npes);
-
+    double local_result[1] = {0.0};  // input buffer for the reduce operation
+    double global_result[1] = {0.0};  // output buffer for the reduce operation
+    int start = rank * (N / npes);  // local start
+    int end = start + (N / npes);  // local end
+    // compute estimate of pi on local portion
     for (int i=start; i < end; ++i) {
          local_result[0] += 4.0 / (1.0 + (h * (i + 0.5)) * (h * (i + 0.5)));
     }
 
     local_result[0] *= h;
-
+    
+    // perform reduction on process size-1
     MPI_Reduce(local_result, global_result, 1, MPI_DOUBLE, MPI_SUM, npes-1, MPI_COMM_WORLD);
+    
+    // take end time, so that to cut send/recv portion
     if (rank == 0) {
         end_time = seconds();
     }
-
+    
+    // send the result from process size-1 to process 0, which will print it
     if (rank == npes - 1) {
         MPI_Send(global_result, 1, MPI_DOUBLE, 0, 101, MPI_COMM_WORLD);
     }
