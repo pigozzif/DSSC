@@ -1,1 +1,3 @@
-Dummy
+## Exercise 1
+A program as required in the exercise has been implemented. It can be compiled by running `script.sh`, which downloads `openmpi` in your current Ulysses environment, compiles the code with `mpicc` and runs with `mpirun`.
+As requested, it initializes an array of size at least 1 GB (in this case, I chose a a power of 2 slightly bigger than that), initializes all its values to -number_of_procs, and uses a call to `MPI_Bcast` to implement a 1:n pattern of communication to send this buffer from process number 0 to all the others, which will then print out the same element. 
