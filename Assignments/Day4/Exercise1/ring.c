@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <mpi.h>
 
-#define N 5
+#define N 5  // dimesion of the vectors
 #define PROC_DOWN(x, npes) (x - 1 + npes) % npes  // the rank of the process to the left
 #define PROC_UP(x, npes) (x + 1) % npes  // the rank of the process to the right
 
@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
 
     int rank = 0;
     int npes = 1;
-    MPI_Request request;
+    MPI_Request request;  // request handler for the non-blocking send
 
     // initialization
     MPI_Init(&argc, &argv);
@@ -46,7 +46,9 @@ int main(int argc, char* argv[]) {
         printf("Process %d received token and summed to %d from process %d\n", rank, sum[0], PROC_DOWN(rank, npes));
     }
 
-    // finalization
+    // deallocation and finalization
+    free(X);
+    free(sum);
     MPI_Finalize();
 
     return 0;
