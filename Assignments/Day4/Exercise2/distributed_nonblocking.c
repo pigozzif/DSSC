@@ -35,8 +35,8 @@ int main(int argc, char* argv[]) {
 
     int rank = 0;
     int npes = 1;
-    MPI_Request mpi_requests2[(N % npes == 0) ? N / npes : N / npes + 1];
-    MPI_Request mpi_requests1[(N % npes == 0) ? N / npes : N / npes + 1];
+    MPI_Request mpi_requests2[(N % npes == 0) ? N / npes : N / npes + 1];  // request handlers for the receive
+    MPI_Request mpi_requests1[(N % npes == 0) ? N / npes : N / npes + 1];  // request handlers for the send
 
     // intialization
     MPI_Init(&argc, &argv);
@@ -135,8 +135,8 @@ int main(int argc, char* argv[]) {
     if (rank != 0) {
         for (int i=0; i < local_N; ++i) {
             MPI_Wait(&mpi_requests1[i], MPI_STATUS_IGNORE);  // make sure data have been sent before calling free
-        }
-        deallocate_matrix(Mat, local_N);
+            free(Mat[i]);
+	}
     }
 
     MPI_Finalize();
