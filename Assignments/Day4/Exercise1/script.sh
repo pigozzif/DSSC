@@ -2,7 +2,7 @@
 
 module load openmpi
 
-PROCS = 4
+PROCS=4
 
 mpicc -std=c99 -o ring.x ring.c
 
