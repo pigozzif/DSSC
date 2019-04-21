@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
             }
         }
 	else {  // else write on binary file
-            FILE* fp = fopen("distributed_matrix.dat", "w"); // open a file in write mode
+            FILE* fp = fopen("distributed_matrix1.dat", "w"); // open a file in write mode
             fread(Mat, sizeof(int), local_N * N, fp);
             int local_size_buf = local_N * N * sizeof(int);
             fseek(fp, local_size_buf, SEEK_CUR);  // move the file pointer just after the currently written region
