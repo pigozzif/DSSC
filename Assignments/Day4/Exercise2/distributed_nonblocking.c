@@ -3,40 +3,31 @@
 #include <mpi.h>
 
 #define N 9  // size of the matrix
+#define INDEX(x, y) x * N + y  // convert 2-d coordinates into 1-d, since matrices are manipulated as 1-d arrays
 
-// this function prints a (dim1, dim2) matrix of integers to the stdout
-void print_matrix(int** A, int dim1, int dim2) {
+// this function swaps two pointers, whose addresses have been passed as arguments
+void swap(int** a, int** b) {
+    int* temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+// this function prints an array as a (dim1, dim2) matrix of integers to the stdout
+void print_matrix(int* A, int dim1, int dim2) {
     for (int i=0; i < dim1; ++i) {
         for (int j=0; j < dim2; ++j) {
-            printf("%d", A[i][j]);
+            printf("%d", A[INDEX(i, j)]);
         }
         printf("\n");
     }
 }
 
-// this function allocates to the heap and returns a (dim1, dim2) matrix of integers
-int** allocate_matrix(int dim1, int dim2) {
-    int** A = (int**)malloc(dim1 * sizeof(int*));
-    for (int i=0; i < dim1; ++i) {
-        A[i] = (int*)malloc(dim2 * sizeof(int));
-    }
-    return A;
-}
-
-// this function deallocates a (dim1, *) matrix of integers
-void deallocate_matrix(int** A, int dim1) {
-    for (int i=0; i < dim1; ++i) {
-        free(A[i]);
-    }
-    free(A);
-}
 
 int main(int argc, char* argv[]) {
 
     int rank = 0;
     int npes = 1;
-    MPI_Request mpi_requests2[(N % npes == 0) ? N / npes : N / npes + 1];  // request handlers for the receive
-    MPI_Request mpi_requests1[(N % npes == 0) ? N / npes : N / npes + 1];  // request handlers for the send
+    MPI_Request request;
 
     // intialization
     MPI_Init(&argc, &argv);
@@ -49,95 +40,58 @@ int main(int argc, char* argv[]) {
     if (rank < rest) ++local_N;  // distribute the rest if N % npes != 0
 
     // allocate matrix
-    int** Mat = (int**)malloc(local_N * sizeof(int*));
-    for (int i=0; i < local_N; ++i) {
-        Mat[i] = (int*)malloc(N * sizeof(int));
-    }
+    int* Mat = (int*)malloc(local_N * N * sizeof(int));
 
-    // fill matrix with identity. FIX ALIGNMENT BUG
+    // fill matrix with identity
     for (int i=0; i < local_N; ++i) {
+        int i_global = i + (rank * local_N);
         for (int j=0; j < N; ++j) {
-            if (rank != rest) {
-                if ((i + (local_N * rank)) == j) {
-                    Mat[i][j] = 1;
-                }
-                else {
-                    Mat[i][j] = 0;
-                }
+            if (i_global == j) {
+                Mat[INDEX(i, j)] = 1;
             }
             else {
-                if ((i + ((local_N + 1) * rank)) == j) {
-                    Mat[i][j] = 1;
-                }
-                else {
-                    Mat[i][j] = 0;
-                }
+                Mat[INDEX(i, j)] = 0;
             }
         }
     }
 
-    // all processes send their distributed portion to 0 the root process 0
+    // all processes send their distributed portion to 0 the root process
     if (rank != 0) {
-        MPI_Send(&local_N, 1, MPI_INT, 0, 101, MPI_COMM_WORLD);
-        for (int i=0; i < local_N; ++i) {
-            MPI_Isend(Mat[i], N, MPI_INT, 0, 101, MPI_COMM_WORLD, &mpi_requests1[i]); // non-blocking send row-by-row
-        }
+        MPI_Send(Mat, local_N * N, MPI_INT, 0, 101, MPI_COMM_WORLD);
     }
     else {  // process 0 orderly receives and prints to the stdout/write on binary file
+        // allocate extra array to store the receiving portion. Needed to implement non-blocking version
+        int* recv_buf = (int*)malloc(local_N * N * sizeof(int));  // the correctness follows from how we distributed the rest
         if (N < 10) {  // if N < 10 print on stdout
-            print_matrix(Mat, local_N, N);
-            deallocate_matrix(Mat, local_N);
-            // for all the other processes: receive, allocate space, print, and deallocate
+            // for all the other processes: non-blocking receive, compute (print), wait, swap pointers
             for (int curr_rank=1; curr_rank < npes; ++curr_rank) {
-                MPI_Recv(&local_N, 1, MPI_INT, curr_rank, 101, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                int** Mat = allocate_matrix(local_N, N);
-                for (int i=0; i < local_N; ++i) {
-                    MPI_Irecv(Mat[i], N, MPI_INT, curr_rank, 101, MPI_COMM_WORLD, &mpi_requests2[i]);  // non-blocking receive row-by-row
-                }
-                // print row-by-row, making sure the one under consideration has actually arrived
-                for (int i=0; i < local_N; ++i) {
-                    MPI_Wait(&mpi_requests2[i], MPI_STATUS_IGNORE);
-                    for (int j=0; j < N; ++j) {
-                        printf("%d", Mat[i][j]);
-                    }
-                    printf("\n");
-                }
-                deallocate_matrix(Mat, local_N);
+                MPI_Irecv(recv_buf, local_N * N, MPI_INT, curr_rank, 101, MPI_COMM_WORLD, &request);
+                print_matrix(Mat, local_N, N);
+                MPI_Wait(&request, MPI_STATUS_IGNORE);  // otherwise we cannot be sure we can swap the pointers
+                swap(&recv_buf, &Mat);
             }
+            print_matrix(Mat, local_N, N);  // we were missing the last one
         }
 	else {  // else write on binary file
-            FILE* fp = fopen("distributed_matrix2.dat", "w"); // open a file in write mode
-            fread(Mat, sizeof(int), local_N * N, fp);
-            int local_size_buf = local_N * N * sizeof(int);
-            fseek(fp, local_size_buf, SEEK_CUR);  // move the file pointer just after the currently written region
-            deallocate_matrix(Mat, local_N);
+            FILE* fp = fopen("distributed_matrix.dat", "w"); // open a file in write mode
+            int local_size_buf = local_N * N * sizeof(int);  // size of the portions to write
             // do the same as the above for loop, but writing on file
             for (int curr_rank=1; curr_rank < npes; ++curr_rank) {
-                MPI_Recv(&local_N, 1, MPI_INT, curr_rank, 101, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                int** Mat = allocate_matrix(local_N, N);
-                for (int i=0; i < local_N; ++i) {
-                    MPI_Irecv(Mat[i], N, MPI_INT, curr_rank, 101, MPI_COMM_WORLD, &mpi_requests2[i]);  // non-blocking receive row-by-row
-                }
-                // write row-by-row, making sure the one under consideration has actually arrived
-                for (int i=0; i < local_N; ++i) {
-                    MPI_Wait(&mpi_requests2[i], MPI_STATUS_IGNORE);
-                    fread(Mat[i], sizeof(int), N, fp);
-                    int local_size_buf = N * sizeof(int);
-                    fseek(fp, local_size_buf, SEEK_CUR); // move the file pointer
-                }
-                deallocate_matrix(Mat, local_N);
+                MPI_Irecv(recv_buf, local_N * N, MPI_INT, curr_rank, 101, MPI_COMM_WORLD, &request);
+                fread(Mat, sizeof(int), local_N * N, fp);  // write
+                fseek(fp, local_size_buf, SEEK_CUR);  // move the file pointer from the current position
+                /** WRITE ON FILE **/
+                MPI_Wait(&request, MPI_STATUS_IGNORE);  // otherwise we cannot be sure we can swap the pointers
+                swap(&recv_buf, &Mat);
             }
 	    fclose(fp); // release resources
         }
+        // deallocated here because only 0 does it
+        free(recv_buf);
     }
 
     // deallocate and finalize
-    if (rank != 0) {
-        for (int i=0; i < local_N; ++i) {
-            MPI_Wait(&mpi_requests1[i], MPI_STATUS_IGNORE);  // make sure data have been sent before calling free
-            free(Mat[i]);
-	}
-    }
+    free(Mat);
 
     MPI_Finalize();
 
