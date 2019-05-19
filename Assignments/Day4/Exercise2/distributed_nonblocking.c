@@ -80,7 +80,6 @@ int main(int argc, char* argv[]) {
                 MPI_Irecv(recv_buf, local_N * N, MPI_INT, curr_rank, 101, MPI_COMM_WORLD, &request);
                 fread(Mat, sizeof(int), local_N * N, fp);  // write
                 fseek(fp, local_size_buf, SEEK_CUR);  // move the file pointer from the current position
-                /** WRITE ON FILE **/
                 MPI_Wait(&request, MPI_STATUS_IGNORE);  // otherwise we cannot be sure we can swap the pointers
                 swap(&recv_buf, &Mat);
             }
