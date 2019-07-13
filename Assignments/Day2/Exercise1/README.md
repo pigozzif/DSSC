@@ -5,4 +5,4 @@ Subsequently, I sat out to understand how to parallelize the code using OpenMP. 
 
 ![alt text](https://github.com/pigozzif/DSSC/blob/master/Assignments/Day2/Exercise1/scalability_plot.png)
 
-As we can see, the trend of the three lines is very close. Still, if we dig deeper, we can see some differences. In particular, `critical` performs worse than everybody else. This is not suprising, since that directive asks the operating system to intervene in the synchronization of the threads, but of course going to the OS is a rather expensive operation. Finally, `reduction` seems to be the best of three, since it keeps below the other two basically over the whole interval.
+As we can see, the trend of the three lines is very close. Still, if we dig deeper, we can see some differences. In particular, `critical` performs worse than everybody else. This is not suprising, since that directive asks the operating system to intervene in the synchronization of the threads, but of course going to the OS is a rather expensive operation.
