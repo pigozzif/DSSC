@@ -28,7 +28,6 @@ int main(int argc, char* argv[]) {
     }
     // implicit barrier upon exit of the work-sharing construct
     double job_duration = omp_get_wtime() - tstart;
-//    printf("Time elapsed: %f\n", job_duration);
     #pragma omp atomic
     avg_job_duration += job_duration / omp_get_num_threads();   //omp_get_num_threads() does not have race conditions
 }
@@ -57,7 +56,6 @@ int main(int argc, char* argv[]) {
     }
     // implicit barrier upon exit of the work-sharing construct
     double job_duration = omp_get_wtime() - tstart;
-   // printf("Time elapsed: %f\n", job_duration);
     #pragma omp atomic
     avg_job_duration += job_duration / omp_get_num_threads();   //omp_get_num_threads() does not have race conditions
 }
@@ -86,7 +84,6 @@ int main(int argc, char* argv[]) {
      }
      // implicit barrier upon exit of the work-sharing construct
      double job_duration = omp_get_wtime() - tstart;
-     //printf("Time elapsed: %f\n", job_duration);
      #pragma omp atomic
      avg_job_duration += job_duration / omp_get_num_threads();
 }
