@@ -7,7 +7,7 @@ The implementation of this function has been carried out as follows. A buffer of
 
 Each block transposes one of the 32x32 sub-blocks and is laid down as a 32x(THREADS_PER_BLOCK / 32) geometry. Blocks are arranged in a grid of dimensions (8192 / 32)x(8192 / 32). 
 
-The tests have been carried out as follows. A matrix of size 8192 * 8192 was allocated, as required. Then, timings are recorded for the naive transposition and the fast one, with a varying number of threads per block (numbers investigated are 64, 256, 512, 1024). In addition, memory bandwidth can be computed GB/s. The results are as follows:
+The tests have been carried out as follows. A matrix of size 8192 * 8192 was allocated, as required. Then, timings are recorded for the naive transposition and the fast one, with a varying number of threads per block (numbers investigated are 64, 256, 512, 1024). The results are as follows:
 
 | NAIVE TRANSPOSE TIME | FAST TRANSPOSE TIME| # THREADS PER BLOCK |
 |:--------------------:|:------------------:|:-------------------:|
