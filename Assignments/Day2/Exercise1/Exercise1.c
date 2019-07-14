@@ -9,14 +9,14 @@ int main(int argc, char* argv[]) {
     // initialization of global variables
     double global_result = 0.0;
     int N = 1000000000;
-    double h = 1.0 / N;
-    double avg_job_duration;
+    double h = 1.0 / N;  // step
+    //double avg_job_duration;
 
     printf("Test with critical:\n");
     // start of the OpenMP parallel region; test with 'critical'
     #pragma omp parallel
     {
-        double curr;
+        double curr, local_result;
         double tstart = omp_get_wtime();
 
         // work-sharing construct to split the computation of the different
@@ -24,13 +24,14 @@ int main(int argc, char* argv[]) {
         #pragma omp for
         for (int i=0; i < N; ++i) {
             curr = h * (i + 0.5);
-            #pragma omp critical    // protect against a race condition
-            global_result += 1.0 / (1.0 + curr*curr);
+            //#pragma omp critical    // protect against a race condition
+            local_result += 1.0 / (1.0 + curr*curr);
         }
+        global_result += local_result;
         // implicit barrier upon exit of the work-sharing construct
-        double job_duration = omp_get_wtime() - tstart;
-        #pragma omp atomic
-        avg_job_duration += job_duration / omp_get_num_threads();   // omp_get_num_threads() does not have race conditions
+        //double job_duration = omp_get_wtime() - tstart;
+        //#pragma omp atomic
+        //avg_job_duration += job_duration / omp_get_num_threads();   // omp_get_num_threads() does not have race conditions
     }
     global_result *= 4.0 * h;
 
@@ -44,7 +45,7 @@ int main(int argc, char* argv[]) {
     // start of the OpenMP parallel region; test with 'atomic'
     #pragma omp parallel
     {
-        double curr;
+        double curr, local_result;
         double tstart = omp_get_wtime();
 
         // work-sharing construct to split the computation of the different
@@ -52,13 +53,14 @@ int main(int argc, char* argv[]) {
         #pragma omp for
         for (int i=0; i < N; ++i) {
             curr = h * (i + 0.5);
-            #pragma omp atomic    // protect against a race condition
-            global_result += 1.0 / (1.0 + curr*curr);
+            //#pragma omp atomic    // protect against a race condition
+            local_result += 1.0 / (1.0 + curr*curr);
         }
+        global_result += local_result;
         // implicit barrier upon exit of the work-sharing construct
-        double job_duration = omp_get_wtime() - tstart;
-        #pragma omp atomic
-        avg_job_duration += job_duration / omp_get_num_threads();   //omp_get_num_threads() does not have race conditions
+        //double job_duration = omp_get_wtime() - tstart;
+        //#pragma omp atomic
+        //avg_job_duration += job_duration / omp_get_num_threads();   //omp_get_num_threads() does not have race conditions
     }
     global_result *= 4.0 * h;
 
@@ -73,7 +75,7 @@ int main(int argc, char* argv[]) {
     // start of the OpenMP parallel region; test with reduction, as seen in the following line
     #pragma omp parallel reduction(+:global_result)
     {
-        double curr;
+        double curr, local_result;
         double tstart = omp_get_wtime();
 
         // work-sharing construct to split the computation of the different
@@ -81,8 +83,9 @@ int main(int argc, char* argv[]) {
         #pragma omp for
         for (int i=0; i < N; ++i) {
             curr = h * (i + 0.5);
-            global_result += 1.0 / (1.0 + curr*curr);
+            local_result += 1.0 / (1.0 + curr*curr);
         }
+        global_result += local_result;
         // implicit barrier upon exit of the work-sharing construct
         double job_duration = omp_get_wtime() - tstart;
         #pragma omp atomic
