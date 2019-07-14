@@ -2,10 +2,16 @@
 #include <stdlib.h>
 #include <mpi.h>
 
-#define N 5  // dimesion of the vectors
-#define PROC_DOWN(x, npes) (x - 1 + npes) % npes  // the rank of the process to the left
-#define PROC_UP(x, npes) (x + 1) % npes  // the rank of the process to the right
+#ifndef VECTOR
+#define N 1  // scalar message
+#else
+#define N 5  // dimension of the vector
+#endif
 
+#define PROC_LEFT(x, npes) (x - 1 + npes) % npes  // the rank of the process to the left
+#define PROC_RIGHT(x, npes) (x + 1) % npes  // the rank of the process to the right
+
+/* Main function */
 
 int main(int argc, char* argv[]) {
 
@@ -18,7 +24,11 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &npes);
 
-    // local buffers
+    #ifndef VECTOR
+    X = rank;
+    sum = 0;
+    #else
+    // allocate local buffers
     int* X = (int*)malloc(N * sizeof(int));
     int* sum = (int*)malloc(N * sizeof(int));
 
@@ -27,28 +37,66 @@ int main(int argc, char* argv[]) {
     // sum = X
     for (int i=0; i < N; ++i) {
         X[i] = rank;
-        sum[i] = X[i];
+        sum[i] = 0;
     }
-
+    #endif
+    
+    for (int iter=0; iter < npes; ++iter) {
+        // iterate over all the processes:
+        // 1. send X to the right
+        MPI_Isend(X, N, MPI_INT, PROC_RIGHT(rank, npes), 101, MPI_COMM_WORLD, &request);  // non-blocking send
+        // 2. perform computation: sum = sum + X
+        #ifndef VECTOR
+        sum += X;
+        #else
+        for (int i=0; i < N; ++i) {
+            sum[i] += X[i];
+        }
+        #endif
+        // 3. recv X from left
+        MPI_Wait(&request, MPI_STATUS_IGNORE);
+        MPI_Recv(X, N, MPI_INT, PROC_LEFT(rank, npes), 101, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
+    // take care of last computation
+    #ifndef VECTOR
+    sum += X;
+    #else
+    for (int i=0; i < N; ++i) {
+            sum[i] += X[i];
+        }
+    #endif
+    
+    // check result
+    printf("Process %d has the following buffer:\n", rank);
+    #ifndef VECTOR
+    printf("%d\n", sum);
+    #else
+    for (int i=0; i < N; ++i) {
+        printf("%d\t", sum[i]);
+    }
+    printf("\n");
+    #endif
+    /*
     // for all processes, receive from the left and locally accumulate
     // then send to the right
     if (rank != 0) {
-        MPI_Recv(sum, 1, MPI_INT, PROC_DOWN(rank, npes), 101, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(sum, 1, MPI_INT, PROC_LEFT(rank, npes), 101, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         for (int i=0; i < N; ++i) sum[i] += X[i];  // accumulate
         printf("Process %d received token and summed to %d from process %d\n", rank, sum[0], PROC_DOWN(rank, npes));
     }
 
-    MPI_Isend(sum, 1, MPI_INT, PROC_UP(rank, npes), 101, MPI_COMM_WORLD, &request);  // non-blocking send
+    MPI_Isend(sum, 1, MPI_INT, PROC_RIGHT(rank, npes), 101, MPI_COMM_WORLD, &request);  // non-blocking send
 
     if (rank == 0) {
-        MPI_Recv(sum, 1, MPI_INT, PROC_DOWN(rank, npes), 101, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(sum, 1, MPI_INT, PROC_LEFT(rank, npes), 101, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         for (int i=0; i < N; ++i) sum[i] += X[i];  // accumulate
-        printf("Process %d received token and summed to %d from process %d\n", rank, sum[0], PROC_DOWN(rank, npes));
+        printf("Process %d received token and summed to %d from process %d\n", rank, sum[0], PROC_LEFT(rank, npes));
     }
-
-    // deallocation and finalization
+*/
+    // deallocate and finalize
     free(X);
     free(sum);
+    
     MPI_Finalize();
 
     return 0;
