@@ -5,7 +5,7 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
-/* this function returns the seconds elapsed from the start of the Unix epoch */
+/* this function returns the seconds elapsed from the start of the Unix epoch on January 1, 1970 */
 
 double seconds() {
     struct timeval tmp;
