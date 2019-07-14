@@ -10,7 +10,7 @@
 #define INDEX(x, y, n) x*n + y  // since matrices are laid down as arrays
 
 
-/* computes wallclock time */
+/* this function returns the seconds elapsed since the start of the Unix epoch on January 1, 1970 */
 
 double seconds() {
     struct timeval tmp;
@@ -99,8 +99,8 @@ int main(int argc, char* argv[]) {
     printf("Elapsed time: %f seconds\nBandwidth: %f GB/s\n", s, (double(2 * size) / 1000000000.0) / s);
 
     // launch fast transpose kernel
-    dim3 BLOCK(TILE, NTHREADS / TILE);
-    dim3 GRID(N / TILE, M / TILE);
+    dim3 BLOCK(TILE, NTHREADS / TILE);  // thread arrangement for each block
+    dim3 GRID(N / TILE, M / TILE);  // block arrangement for the overall grid
     start = seconds();
     fast_transpose<<<GRID, BLOCK>>>(mat_gpu, trans_gpu);
     cudaDeviceSynchronize();
