@@ -10,7 +10,8 @@
 #define INDEX(x, y, n) x*n + y  // since matrices are laid down as arrays
 
 
-// computes wallclock time
+/* computes wallclock time */
+
 double seconds() {
     struct timeval tmp;
     double sec;
@@ -19,7 +20,8 @@ double seconds() {
     return sec;
 }
 
-// transpose the input matrix into the output using the naive CUDA implementation, not shared memory
+/* transpose the input matrix into the output using the naive CUDA implementation, not shared memory */
+
 __global__ void naive_transpose(TYPE* in, TYPE* out) {
     int x = threadIdx.x;
     int y = blockIdx.x;
@@ -33,8 +35,9 @@ __global__ void naive_transpose(TYPE* in, TYPE* out) {
     }
 }
 
-// transpose the input matrix into the output using the block algorithm implemented in CUDA. Uses shared memory
-// for better memory coalescing
+/* transpose the input matrix into the output using the block algorithm implemented in CUDA. Uses shared memory
+   for better memory coalescing */
+
 __global__ void fast_transpose(TYPE* in, TYPE* out) {
     // 1. Allocate auxiliary buffer of size TILE x TILE
     __shared__ TYPE buffer[TILE][TILE];
@@ -55,6 +58,8 @@ __global__ void fast_transpose(TYPE* in, TYPE* out) {
         out[(y + j) * M + x] = buffer[threadIdx.x][threadIdx.y + j];
     }
 }
+
+/* Main function */
 
 int main(int argc, char* argv[]) {
     //define matrices
