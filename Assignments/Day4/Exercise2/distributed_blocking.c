@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
             }
         }
 	else {  // else write on binary file
-            FILE* fp = fopen("distributed_matrix.dat", "w"); // open a file in write mode
+            FILE* fp = fopen("distributed_matrix1.dat", "w"); // open a file in write mode
             int local_size_buf = local_N * N * sizeof(int);  // size of the portions to write
             // write the portion of 0
             //fread(Mat, sizeof(int), local_N * N, fp);
