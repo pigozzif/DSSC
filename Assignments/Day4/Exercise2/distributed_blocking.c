@@ -82,16 +82,12 @@ int main(int argc, char* argv[]) {
             FILE* fp = fopen("distributed_matrix1.dat", "w"); // open a file in write mode
             int local_size_buf = local_N * N * sizeof(int);  // size of the portions to write
             // write the portion of 0
-            //fread(Mat, sizeof(int), local_N * N, fp);
             write_matrix(Mat, local_N, N, fp);
-            fseek(fp, local_size_buf, SEEK_CUR);
             // do the same as the above for loop, but writing on file
             for (int curr_rank=1; curr_rank < npes; ++curr_rank) {
                 MPI_Recv(Mat, local_N * N, MPI_INT, curr_rank, 101, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 // write
 		write_matrix(Mat, local_N, N, fp);
-                //fread(Mat, sizeof(int), local_N * N, fp);  // write
-                //fseek(fp, local_size_buf, SEEK_CUR);  // move the file pointer from the current position
             }
 	    fclose(fp); // release resources
         }
