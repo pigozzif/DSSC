@@ -6,7 +6,8 @@
 #define INDEX(x, y) x * N + y  // convert 2-d coordinates into 1-d, since matrices are manipulated as 1-d arrays
 
 
-// this function prints an array as a (dim1, dim2) matrix of integers to the stdout
+/* this function prints an array as a (dim1, dim2) matrix of integers to the stdout */
+
 void print_matrix(int* A, int dim1, int dim2) {
     for (int i=0; i < dim1; ++i) {
         for (int j=0; j < dim2; ++j) {
@@ -16,6 +17,18 @@ void print_matrix(int* A, int dim1, int dim2) {
     }
 }
 
+/* this function writes an array as a (dim1, dim2) matrix of integers on a binary file pointed by 'fp' */
+
+void write_matrix(int* A, int dim1, int dim2, FILE* fp) {
+    for (int i=0; i < dim1; ++i) {
+        for (int j=0; j < dim2; ++j) {
+	    fprintf(fp, "%d\t", A[INDEX(i, j)]);
+	}
+	fprintf(fp, "\n");
+    }
+}
+
+/* Main function */
 
 int main(int argc, char* argv[]) {
 
@@ -30,7 +43,9 @@ int main(int argc, char* argv[]) {
     // local variables
     int local_N = N / npes;
     int rest = N % npes;
-    if (rank < rest) ++local_N;  // distribute the rest if N % npes != 0
+    if (rank < rest) {
+        ++local_N;  // distribute the rest if N % npes != 0
+    }
 
     // allocate matrix
     int* Mat = (int*)malloc(local_N * N * sizeof(int));
@@ -67,14 +82,16 @@ int main(int argc, char* argv[]) {
             FILE* fp = fopen("distributed_matrix.dat", "w"); // open a file in write mode
             int local_size_buf = local_N * N * sizeof(int);  // size of the portions to write
             // write the portion of 0
-            fread(Mat, sizeof(int), local_N * N, fp);
+            //fread(Mat, sizeof(int), local_N * N, fp);
+            write_matrix(Mat, local_N, N, fp);
             fseek(fp, local_size_buf, SEEK_CUR);
             // do the same as the above for loop, but writing on file
             for (int curr_rank=1; curr_rank < npes; ++curr_rank) {
                 MPI_Recv(Mat, local_N * N, MPI_INT, curr_rank, 101, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 // write
-                fread(Mat, sizeof(int), local_N * N, fp);  // write
-                fseek(fp, local_size_buf, SEEK_CUR);  // move the file pointer from the current position
+		write_matrix(Mat, local_N, N, fp);
+                //fread(Mat, sizeof(int), local_N * N, fp);  // write
+                //fseek(fp, local_size_buf, SEEK_CUR);  // move the file pointer from the current position
             }
 	    fclose(fp); // release resources
         }
