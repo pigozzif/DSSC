@@ -41,8 +41,8 @@ int main(int argc, char* argv[]) {
     }
     #endif
     
+    // iterate over all the processes:
     for (int iter=0; iter < npes; ++iter) {
-        // iterate over all the processes:
         // 1. send X to the right
         MPI_Isend(X, N, MPI_INT, PROC_RIGHT(rank, npes), 101, MPI_COMM_WORLD, &request);  // non-blocking send
         // 2. perform computation: sum = sum + X
@@ -76,23 +76,7 @@ int main(int argc, char* argv[]) {
     }
     printf("\n");
     #endif
-    /*
-    // for all processes, receive from the left and locally accumulate
-    // then send to the right
-    if (rank != 0) {
-        MPI_Recv(sum, 1, MPI_INT, PROC_LEFT(rank, npes), 101, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        for (int i=0; i < N; ++i) sum[i] += X[i];  // accumulate
-        printf("Process %d received token and summed to %d from process %d\n", rank, sum[0], PROC_DOWN(rank, npes));
-    }
-
-    MPI_Isend(sum, 1, MPI_INT, PROC_RIGHT(rank, npes), 101, MPI_COMM_WORLD, &request);  // non-blocking send
-
-    if (rank == 0) {
-        MPI_Recv(sum, 1, MPI_INT, PROC_LEFT(rank, npes), 101, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        for (int i=0; i < N; ++i) sum[i] += X[i];  // accumulate
-        printf("Process %d received token and summed to %d from process %d\n", rank, sum[0], PROC_LEFT(rank, npes));
-    }
-*/
+    
     // deallocate and finalize
     free(X);
     free(sum);
