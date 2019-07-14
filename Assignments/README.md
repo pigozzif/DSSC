@@ -1,0 +1,1 @@
+In this folder you can find all the required exercises for the Parallel Programming part of the "Foundations of High Performance Computing" course held at SISSA/ICTP on 2019. Exercises have been grouped in days, and all the material can be found in the subfolders. 
