@@ -5,7 +5,8 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
-// this function returns the seconds elapsed from the start of the Unix epoch
+/* this function returns the seconds elapsed from the start of the Unix epoch */
+
 double seconds() {
     struct timeval tmp;
     double sec;
@@ -14,6 +15,7 @@ double seconds() {
     return sec;
 }
 
+/* Main function */
 
 int main(int argc, char* argv[]) {
     double N = 1000000000;  // large number of rectangles
@@ -26,7 +28,9 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &npes);
     
-    if (rank == 0) start_time = seconds();  // time has to be taken on one process, for us 0
+    if (rank == 0) {
+        start_time = seconds();  // time has to be taken on one process, for us 0
+    }
 
     double local_result[1] = {0.0};  // input buffer for the reduce operation
     double global_result[1] = {0.0};  // output buffer for the reduce operation
