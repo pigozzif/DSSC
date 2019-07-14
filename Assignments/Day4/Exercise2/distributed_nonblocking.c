@@ -5,14 +5,16 @@
 #define N 9  // size of the matrix
 #define INDEX(x, y) x * N + y  // convert 2-d coordinates into 1-d, since matrices are manipulated as 1-d arrays
 
-// this function swaps two pointers, whose addresses have been passed as arguments
+/* this function swaps two pointers, whose addresses have been passed as arguments */
+
 void swap(int** a, int** b) {
     int* temp = *a;
     *a = *b;
     *b = temp;
 }
 
-// this function prints an array as a (dim1, dim2) matrix of integers to the stdout
+/* this function prints an array as a (dim1, dim2) matrix of integers to the stdout */
+
 void print_matrix(int* A, int dim1, int dim2) {
     for (int i=0; i < dim1; ++i) {
         for (int j=0; j < dim2; ++j) {
@@ -22,6 +24,18 @@ void print_matrix(int* A, int dim1, int dim2) {
     }
 }
 
+/* this function writes an array as a (dim1, dim2) matrix of integers on a binary file pointed by 'fp' */
+
+void write_matrix(int* A, int dim1, int dim2, FILE* fp) {
+    for (int i=0; i < dim1; ++i) {
+        for (int j=0; j < dim2; ++j) {
+	    fprintf(fp, "%d\t", A[INDEX(i, j)]);
+	}
+	fprintf(fp, "\n");
+    }
+}
+
+/* Main function */
 
 int main(int argc, char* argv[]) {
 
@@ -73,16 +87,18 @@ int main(int argc, char* argv[]) {
             print_matrix(Mat, local_N, N);  // we were missing the last one
         }
 	else {  // else write on binary file
-            FILE* fp = fopen("distributed_matrix.dat", "w"); // open a file in write mode
+            FILE* fp = fopen("distributed_matrix2.dat", "w"); // open a file in write mode
             int local_size_buf = local_N * N * sizeof(int);  // size of the portions to write
             // do the same as the above for loop, but writing on file
             for (int curr_rank=1; curr_rank < npes; ++curr_rank) {
                 MPI_Irecv(recv_buf, local_N * N, MPI_INT, curr_rank, 101, MPI_COMM_WORLD, &request);
-                fread(Mat, sizeof(int), local_N * N, fp);  // write
-                fseek(fp, local_size_buf, SEEK_CUR);  // move the file pointer from the current position
+                //fread(Mat, sizeof(int), local_N * N, fp);  // write
+                //fseek(fp, local_size_buf, SEEK_CUR);  // move the file pointer from the current position
+		write_matrix(Mat, local_N, N, fp);
                 MPI_Wait(&request, MPI_STATUS_IGNORE);  // otherwise we cannot be sure we can swap the pointers
                 swap(&recv_buf, &Mat);
             }
+            write_matrix(Mat, local_N, N, fp);  // missing last one
 	    fclose(fp); // release resources
         }
         // deallocated here because only 0 does it
