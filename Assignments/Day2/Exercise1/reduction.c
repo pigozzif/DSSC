@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
     }
     global_result *= 4.0 * h;
     
-    end = seconds();
+    double end = seconds();
     
     // print results
     printf("Result: %f\n", global_result);
