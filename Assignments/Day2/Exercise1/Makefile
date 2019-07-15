@@ -6,9 +6,9 @@ TARGET = exercise1.x
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-  $(CC) $(CCFLAGS) -o $@ $^
-  
+	$(CC) $(CCFLAGS) -o $@ $^
+
 .PHONY: all clean
 
 clean:
-  rm $(TARGET)
+	rm $(TARGET)

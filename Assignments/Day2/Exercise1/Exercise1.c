@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <omp.h>
+#include <sys/time.h>
 
 /* this function returns the seconds elapsed since the start of the Unix epoch on January 1, 1970 */
 
@@ -29,8 +30,8 @@ int main(int argc, char* argv[]) {
     #pragma omp parallel
     {
         double curr, local_result;
-        double tstart = omp_get_wtime();
-
+//        double tstart = omp_get_wtime();
+        printf("Num of threads:%d\n", omp_get_num_threads());
         // work-sharing construct to split the computation of the different
         // rectangles
         #pragma omp for
@@ -58,7 +59,7 @@ int main(int argc, char* argv[]) {
     #pragma omp parallel
     {
         double curr, local_result;
-        double tstart = omp_get_wtime();
+//        double tstart = omp_get_wtime();
 
         // work-sharing construct to split the computation of the different
         // rectangles
