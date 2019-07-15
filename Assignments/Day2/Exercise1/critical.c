@@ -39,75 +39,15 @@ int main(int argc, char* argv[]) {
             local_result += 1.0 / (1.0 + curr*curr);
         }
         #pragma omp critical
-        global_result += local_result;
+        global_result += local_result;  // possible race condition
     }
     global_result *= 4.0 * h;
     
     double end = seconds();
     
+    // print results
     printf("Result: %f\n", global_result);
     printf("Time elapsed: %f\n", end - start);
-    // re-initialize
-    global_result = 0.0;
-    local_result = 0.0;
-    curr = 0.0;
-    //avg_job_duration = 0.0;
-    printf("Test with atomic:\n");
-    start = seconds();
-    // start of the OpenMP parallel region; test with 'atomic'
-    #pragma omp parallel firstprivate(local_result, curr)
-    {
-//        double curr, local_result;
-//        double tstart = omp_get_wtime();
-
-        // work-sharing construct to split the computation of the different
-        // rectangles
-        #pragma omp for
-        for (int i=0; i < N; ++i) {
-            curr = h * (i + 0.5);
-            //#pragma omp atomic    // protect against a race condition
-            local_result += 1.0 / (1.0 + curr*curr);
-        }
-        // implicit barrier upon exit of the work-sharing construct
-        printf("Atomic with %f\n", local_result);
-        #pragma omp atomic
-        global_result += local_result;
-    }
-    global_result *= 4.0 * h;
-    end = seconds();
-    printf("Result: %f\n", global_result);
-    printf("Time elapsed: %f\n", end - start);
-
-    // re-initialize
-    global_result = 0.0;
-    //avg_job_duration = 0.0;
-    printf("Test with reduction:\n");
-    start = seconds();
-    // start of the OpenMP parallel region; test with reduction, as seen in the following line
-    #pragma omp parallel reduction(+:global_result)
-    {
-        double curr, local_result;
-        //double tstart = omp_get_wtime();
-
-        // work-sharing construct to split the computation of the different
-        // rectangles
-        #pragma omp for
-        for (int i=0; i < N; ++i) {
-            curr = h * (i + 0.5);
-            local_result += 1.0 / (1.0 + curr*curr);
-        }
-        printf("Reduction with %f\n", local_result);
-        global_result += local_result;
-        // implicit barrier upon exit of the work-sharing construct
-        //double job_duration = omp_get_wtime() - tstart;
-        //#pragma omp atomic
-        //avg_job_duration += job_duration / omp_get_num_threads();
-    }
     
-    global_result *= 4.0 * h;
-    end = seconds();
-    printf("Result: %f\n", global_result);
-    printf("Time elapsed: %f\n", end - start);
-
     return 0;
 }
