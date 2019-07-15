@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
             local_result += 1.0 / (1.0 + curr*curr);
         }
         #pragma omp atomic
-        global_result += local_result;
+        global_result += local_result;  // possible race condition
     }
     global_result *= 4.0 * h;
     
