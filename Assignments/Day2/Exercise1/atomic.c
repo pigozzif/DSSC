@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
     double start = seconds();
 
     // start of the OpenMP parallel region
-    #pragma omp parallel firstprivate(local_result, curr)
+    #pragma omp parallel
     {
         double curr, local_result;
 
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     global_result *= 4.0 * h;
     
     // print results
-    end = seconds();
+    double end = seconds();
     
     printf("Result: %f\n", global_result);
     printf("Time elapsed: %f\n", end - start);
